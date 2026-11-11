@@ -23,7 +23,7 @@ android {
             if (f.exists()) f.inputStream().use { load(it) }
         }
         // 동승자 공동 장바구니: QR로 여는 웹 메뉴판(GitHub Pages)과 메시지 중계 서버(ntfy.sh, 데모용)
-        buildConfigField("String", "SHARE_BASE_URL", "\"https://iamseonyeong.github.io/ThruOrder/\"")
+        buildConfigField("String", "SHARE_BASE_URL", "\"https://seonyeongmonkey.github.io/ThruOrder/\"")
         buildConfigField("String", "RELAY_BASE_URL", "\"https://ntfy.sh\"")
         buildConfigField("String", "KAKAO_REST_KEY", "\"${localProps.getProperty("kakao.rest.key", "")}\"")
     }
@@ -65,6 +65,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
-    // QR 코드 생성
+    // QR 생성
     implementation("com.google.zxing:core:3.5.3")
 }
