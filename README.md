@@ -75,7 +75,7 @@ Pleos 에뮬레이터를 켜면 내비 현재 위치가 **성남시 수정구 �
 
 ### GitHub Pages 켜기 (한 번만)
 저장소 **Settings → Pages → Build and deployment**에서 Source: *Deploy from a branch*, Branch: `main` / `/docs` 선택 → Save.
-몇 분 뒤 `https://iamseonyeong.github.io/ThruOrder/` 가 열리면 QR이 동작합니다.
+몇 분 뒤 `https://seonyeongmonkey.github.io/ThruOrder/` 가 열리면 QR이 동작합니다.
 
 ## 데모 버전의 한계와 실제 서비스 동작
 
