@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>스루오더 · 함께 고르기</title>
+<style>
+:root{--bg:#F7F8FA;--card:#fff;--ink:#131417;--sub:#686A72;--line:#E0E1E6;--accent:#2F6BFF;--warn:#E5484D}
+@media (prefers-color-scheme:dark){:root{--bg:#131417;--card:#1D1E21;--ink:#fff;--sub:#A4A8AE;--line:#313236}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;padding-bottom:120px}
+header{padding:20px 16px 8px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--sub);font-size:14px;line-height:1.5}
+.note{color:var(--sub);font-size:12px;margin-top:6px}
+.who{display:flex;gap:8px;flex-wrap:wrap;padding:8px 16px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font-size:15px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+h2{font-size:15px;color:var(--sub);margin:18px 16px 8px}
+.item{display:flex;align-items:center;gap:12px;background:var(--card);margin:0 16px 8px;padding:14px;border-radius:14px}
+.item .t{flex:1}
+.item .n{font-size:16px;font-weight:700}
+.item .p{font-size:13px;color:var(--sub);margin-top:2px}
+.item.out{opacity:.45}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:20px}
+.qty b{min-width:18px;text-align:center}
+.shared{background:var(--card);margin:0 16px;padding:14px;border-radius:14px;font-size:14px;line-height:1.6}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line);display:flex;gap:12px;align-items:center}
+.bar .sum{flex:1;font-size:15px}
+.bar button{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:14px 18px;font-size:16px;font-weight:700}
+.bar button:disabled{opacity:.4}
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--accent);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;display:none}
+.done{background:var(--accent);color:#fff;margin:16px;padding:16px;border-radius:14px;display:none}
+.done b{font-size:28px;display:block;margin-top:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="store">스루오더</h1>
+  <div class="sub">차량 화면과 같은 장바구니예요. 담은 메뉴가 차에 바로 들어가요.</div>
+  <div class="note">※ 공모전 시연용 데모입니다. 매장명은 예시이며 해당 브랜드와 제휴·승인 관계가 없고, 메뉴·가격은 가정값입니다.</div>
+</header>
+<div class="done" id="done">주문이 접수됐어요<b id="code"></b><span id="arr"></span></div>
+<h2>누가 고르나요?</h2>
+<div class="who" id="who"></div>
+<h2>메뉴</h2>
+<div id="menu"></div>
+<h2>지금 차 장바구니</h2>
+<div class="shared" id="shared">아직 담긴 메뉴가 없어요</div>
+<div class="bar"><div class="sum" id="sum">고른 메뉴 0개</div><button id="send" disabled>차에 담기</button></div>
+<div class="toast" id="toast">차 장바구니에 담았어요</div>
+<script>
+const MENU = {"스타벅스": [{"id": "SBX-01", "cat": "커피", "name": "아이스 아메리카노 (레귤러)", "price": 4700, "prep": 60, "soldOut": false}, {"id": "SBX-02", "cat": "커피", "name": "아메리카노 (레귤러)", "price": 4700, "prep": 60, "soldOut": false}, {"id": "SBX-03", "cat": "커피", "name": "아이스 카페라떼 (레귤러)", "price": 5200, "prep": 90, "soldOut": false}, {"id": "SBX-04", "cat": "커피", "name": "바닐라 크림 콜드브루 (레귤러)", "price": 6100, "prep": 60, "soldOut": false}, {"id": "SBX-05", "cat": "커피", "name": "콜드브루 (레귤러)", "price": 5100, "prep": 40, "soldOut": false}, {"id": "SBX-06", "cat": "커피", "name": "카라멜 마키아또 (레귤러)", "price": 5900, "prep": 120, "soldOut": false}, {"id": "SBX-07", "cat": "티", "name": "자몽 허니 블랙티 (레귤러)", "price": 5900, "prep": 90, "soldOut": false}, {"id": "SBX-08", "cat": "프라푸치노", "name": "초코칩 블렌디드 커피 (레귤러)", "price": 6300, "prep": 150, "soldOut": false}, {"id": "SBX-09", "cat": "프라푸치노", "name": "망고 블렌디드 (레귤러)", "price": 5900, "prep": 150, "soldOut": true}, {"id": "SBX-10", "cat": "푸드", "name": "BLT 샌드위치", "price": 6500, "prep": 120, "soldOut": false}, {"id": "SBX-11", "cat": "푸드", "name": "햄 루꼴라 베이글", "price": 5900, "prep": 120, "soldOut": false}, {"id": "SBX-12", "cat": "푸드", "name": "생크림 카스텔라", "price": 4500, "prep": 20, "soldOut": false}], "맥도날드": [{"id": "MCD-01", "cat": "버거", "name": "클래식 더블버거", "price": 5700, "prep": 180, "soldOut": false}, {"id": "MCD-02", "cat": "버거", "name": "스파이시 치킨버거", "price": 5700, "prep": 180, "soldOut": false}, {"id": "MCD-03", "cat": "버거", "name": "베이컨 비프버거", "price": 6900, "prep": 210, "soldOut": false}, {"id": "MCD-04", "cat": "버거", "name": "불고기 버거", "price": 3200, "prep": 150, "soldOut": false}, {"id": "MCD-05", "cat": "버거", "name": "치즈버거", "price": 3300, "prep": 120, "soldOut": false}, {"id": "MCD-06", "cat": "사이드", "name": "감자튀김 (M)", "price": 2600, "prep": 180, "soldOut": false}, {"id": "MCD-07", "cat": "사이드", "name": "치킨너겟 6조각", "price": 3700, "prep": 180, "soldOut": false}, {"id": "MCD-08", "cat": "사이드", "name": "해시브라운", "price": 1600, "prep": 150, "soldOut": true}, {"id": "MCD-09", "cat": "음료", "name": "콜라 (M)", "price": 2300, "prep": 30, "soldOut": false}, {"id": "MCD-10", "cat": "음료", "name": "아이스 아메리카노 (M)", "price": 2400, "prep": 45, "soldOut": false}, {"id": "MCD-11", "cat": "음료", "name": "오렌지 주스", "price": 2700, "prep": 20, "soldOut": false}, {"id": "MCD-12", "cat": "디저트", "name": "쿠키 아이스크림 (컵)", "price": 3900, "prep": 60, "soldOut": false}]};
+const RELAY = "https://ntfy.sh";
+const q = new URLSearchParams(location.search);
+const session = (q.get("s") || "").replace(/[^a-z0-9]/g, "");
+const brand = q.get("b") || "";
+const storeName = q.get("sn") || brand || "스루오더";
+const topic = RELAY + "/thruorder-" + session;
+const items = MENU[brand] || [];
+const picks = {};
+let who = "뒷좌석 왼쪽";
+
+document.getElementById("store").textContent = storeName;
+const won = n => n.toLocaleString("ko-KR") + "원";
+
+function renderWho(){
+  const el = document.getElementById("who"); el.innerHTML = "";
+  ["뒷좌석 왼쪽","뒷좌석 오른쪽","동승석"].forEach(w => {
+    const b = document.createElement("button");
+    b.className = "chip" + (w === who ? " on" : ""); b.textContent = w;
+    b.onclick = () => { who = w; renderWho(); };
+    el.appendChild(b);
+  });
+}
+function renderMenu(){
+  const el = document.getElementById("menu"); el.innerHTML = "";
+  if (!session || !items.length){ el.innerHTML = '<div class="shared">QR 정보가 올바르지 않아요. 차량 화면의 QR을 다시 찍어 주세요.</div>'; return; }
+  let cat = "";
+  items.forEach(it => {
+    if (it.cat !== cat){ cat = it.cat; const h = document.createElement("h2"); h.textContent = cat; h.style.margin = "10px 16px 6px"; el.appendChild(h); }
+    const d = document.createElement("div"); d.className = "item" + (it.soldOut ? " out" : "");
+    const n = picks[it.id] || 0;
+    d.innerHTML = '<div class="t"><div class="n"></div><div class="p"></div></div>' +
+      (it.soldOut ? '<span class="p">품절</span>' : '<div class="qty"><button aria-label="빼기">−</button><b>'+n+'</b><button aria-label="담기">+</button></div>');
+    d.querySelector(".n").textContent = it.name;
+    d.querySelector(".p").textContent = won(it.price) + " · 준비 " + Math.ceil(it.prep/60) + "분";
+    if (!it.soldOut){
+      const [minus, plus] = d.querySelectorAll("button");
+      minus.onclick = () => { if (picks[it.id]) { picks[it.id]--; if (!picks[it.id]) delete picks[it.id]; } renderMenu(); renderSum(); };
+      plus.onclick = () => { picks[it.id] = (picks[it.id] || 0) + 1; renderMenu(); renderSum(); };
+    }
+    el.appendChild(d);
+  });
+}
+function renderSum(){
+  const c = Object.values(picks).reduce((a,b)=>a+b,0);
+  const t = Object.entries(picks).reduce((a,[id,k]) => a + (items.find(i=>i.id===id)?.price||0)*k, 0);
+  document.getElementById("sum").textContent = "고른 메뉴 " + c + "개 · " + won(t);
+  document.getElementById("send").disabled = c === 0;
+}
+document.getElementById("send").onclick = async () => {
+  const list = Object.entries(picks).map(([id,qty]) => ({id, qty}));
+  if (!list.length) return;
+  const btn = document.getElementById("send"); btn.disabled = true;
+  try {
+    await fetch(topic, {method: "POST", body: JSON.stringify({type: "add", who, items: list})});
+    for (const k in picks) delete picks[k];
+    renderMenu(); renderSum();
+    const t = document.getElementById("toast"); t.style.display = "block"; setTimeout(() => t.style.display = "none", 1800);
+  } catch (e) { alert("전송에 실패했어요. 잠시 후 다시 시도해 주세요."); btn.disabled = false; }
+};
+if (session){
+  const es = new EventSource(topic + "/sse");
+  es.onmessage = e => {
+    try {
+      const m = JSON.parse(JSON.parse(e.data).message || "{}");
+      if (m.type === "cart"){
+        const el = document.getElementById("shared");
+        if (!m.lines.length){ el.textContent = "아직 담긴 메뉴가 없어요"; return; }
+        const total = m.lines.reduce((a,l)=>a+l.price*l.qty,0);
+        el.innerHTML = "";
+        m.lines.forEach(l => { const r = document.createElement("div"); r.textContent = l.who + " · " + l.name + " × " + l.qty; el.appendChild(r); });
+        const s = document.createElement("div"); s.style.fontWeight = "700"; s.style.marginTop = "6px"; s.textContent = "합계 " + won(total); el.appendChild(s);
+      } else if (m.type === "ordered"){
+        document.getElementById("done").style.display = "block";
+        document.getElementById("code").textContent = "주문코드 " + m.code;
+        document.getElementById("arr").textContent = "도착 예정 " + m.arrival + " · 도착에 맞춰 조리해요";
+        document.getElementById("send").disabled = true;
+      }
+    } catch (_) {}
+  };
+}
+renderWho(); renderMenu(); renderSum();
+</script>
+</body>
+</html>

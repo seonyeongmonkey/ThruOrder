@@ -1,0 +1,4 @@
+<resources>
+    <!-- 스루오더 브랜드 컬러 (ui/Theme.kt 의 Brand 와 같은 값) -->
+    <color name="brand">#2F6BFF</color>
+</resources>
